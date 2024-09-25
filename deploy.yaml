@@ -1,0 +1,98 @@
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-ns
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: my-ns
+  name: my-pod
+  labels:
+    app: my-app
+spec:
+  containers:
+  - name: server
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    image: quay.io/jhernand/dummy:latest
+    imagePullPolicy: Always
+    command:
+    - /usr/local/bin/dummy
+    ports:
+    - containerPort: 8443
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: my-ns
+  name: my-service
+spec:
+  selector:
+    app: my-app
+  ports:
+  - name: my-port
+    protocol: TCP
+    port: 8443
+    targetPort: 8443
+
+---
+
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  namespace: my-ns
+  name: my-route
+spec:
+  port:
+    targetPort: my-port
+  tls:
+    termination: reencrypt
+    destinationCACertificate: |
+      -----BEGIN CERTIFICATE-----
+      MIIFgTCCA2mgAwIBAgIUdxRaoy5YrUdH6DOXCqrt+417vKQwDQYJKoZIhvcNAQEL
+      BQAwNDEyMDAGA1UEAwwpbXktc2VydmljZS5teS1uYW1lc3BhY2Uuc3ZjLmNsdXN0
+      ZXIubG9jYWwwHhcNMjQwOTI1MTQwMzM1WhcNMjUwOTI1MTQwMzM1WjA0MTIwMAYD
+      VQQDDClteS1zZXJ2aWNlLm15LW5hbWVzcGFjZS5zdmMuY2x1c3Rlci5sb2NhbDCC
+      AiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBALFV2/bioz576TFxqbNg1Ml5
+      L620XanxU5XHZakiWPoAV8shKByn/vP5Pmhsd18kqtrxyLBbFDdX/H99xH5uxhnj
+      So5POOAJi5KGXUxa53cZ3FNkld+Qx1cINpWDAw0CD0u7pS9sByr85C23hoWU9nH0
+      uf6ZhUV+oB+hScLtoFUs9M3R3CErvzl4ObWFvngIlMsuGK3H6/Z2GizMskSZ9Kke
+      OAtV0Q+dsQn4dDuWJ7GMzd9UqJ82D3kE1d5yxlKN8dKPmAVJZ5EZNd4NyRtiotYJ
+      VfPszsoixjddAOiHc3E3WPfJPXU1PBzzCKZy9+qDytRhtt5GwwjGQPBOH68LaFgQ
+      OiCAIEleUziPFRY0fbFGBN9N9HS/jPiS72QxBEF0O8xWozvJB47EqLHxJzvJE7u4
+      AobD3pGKnurg139WAuVhzvCcnTYMFGtrwd0a21TiNnM0AB/ob91s84sjI9MXOfrt
+      jP4HwL3xSfCxrFS2qGSL54FYEjIvgwlH4h1MkXvxrezVQAJV1v1EhQRrqtLFM454
+      pBtXKBgnc4OlgsoNPNBdMHroKK0tTa5H77a953jODVv6oxG9cQBCGESVHff0OP/V
+      S2+jeUQfpaydewYtiVqRwDhPQhqnI0rxYCgw6s9SRFaBXdeXXSoDjx8BpQgbL0px
+      55XtwecxX5mctOIgzFfbAgMBAAGjgYowgYcwHQYDVR0OBBYEFFRDc6lRbXO7u4n4
+      6tzTT2QRbQ/QMB8GA1UdIwQYMBaAFFRDc6lRbXO7u4n46tzTT2QRbQ/QMA8GA1Ud
+      EwEB/wQFMAMBAf8wNAYDVR0RBC0wK4IpbXktc2VydmljZS5teS1uYW1lc3BhY2Uu
+      c3ZjLmNsdXN0ZXIubG9jYWwwDQYJKoZIhvcNAQELBQADggIBAHPxmbkDXmj07WVu
+      VWlUdMFYJdHxWpgLYcsXsgcwavOOy9bZ7IgoWwgkASfXc13E/72IkpCxAUuyjpqU
+      bj3xvKRKxvEMfHq0NyxiYbLTFQRorfH2POwOXS1uc3clwYgXVUoM3Y3U2XAfAGEv
+      n4H5c7we6DbLrkplmFxCmsX2qElppXzGVherrml/+wy7guGKD75QB42GBGkOoot5
+      z3cW83w/xesofPIZ0Rpyg3MNGxp+0VPsSAuSIn/6bd1H3BmoRiHu5Ms4y7P7aV91
+      64jVRt3/pvp1ZzJbCTH9plaHkC5FkwP1xj5mxQEIVIMMqlBjzqynQngeWIzT5hDl
+      Ub4nPyX3V/CJsRuWSTF1oqb43q/BLOrcUQ3LxYZbIeDwrzsfz9NngBfC9e1JHoJ1
+      l+QvF+dJKi4ejMTzjsO79YwlEzXpbQUFBY+KjLNEhAlUVpvT8/T29aa55AtoPAS9
+      lr6qpcA2HBQLWzHzLECG9OI0uGE0iRSR7vxsrQkxFrZndOuKUlsMRoIEZihv1e4z
+      adIzKv1etyXZRNzo1eLzGtkbNSmpj0y6W06qAwcYm8b3o1Y4/zf0+gGaelmwf+ic
+      FYOQh5rSVQTzveIfWu6CjYcHbi+E5K01nOmxjIrZB0vG5arRRJqSM4bJUw4NobAL
+      fWTzUCEP6tO958N2HQPKrhOuUDFx
+      -----END CERTIFICATE-----
+  to:
+    kind: Service
+    name: my-service

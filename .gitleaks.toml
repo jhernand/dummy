@@ -1,0 +1,7 @@
+[allowlist]
+  description = "Global allow list"
+
+  regexes = [
+    # Ignore the TLS key in the main program, as it is just used for tests.
+    '''const tlsKey =''',
+  ]
